@@ -1,0 +1,1 @@
+# kogito-data-index-storage-mongodb
