@@ -23,7 +23,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
+import org.bson.Document;
 import org.bson.json.JsonWriterSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +43,10 @@ public class ModelUtils {
         return Optional.ofNullable(time).map(t -> t.toInstant().toEpochMilli()).orElse(null);
     }
 
-    public static <T extends JsonNode> T dbObjectToJsonNode(BasicDBObject dbObject, Class<T> type) {
-        return Optional.ofNullable(dbObject).map(obj -> {
+    public static <T extends JsonNode> T documentToJsonNode(Document document, Class<T> type) {
+        return Optional.ofNullable(document).map(doc -> {
             try {
-                return JsonUtils.getObjectMapper().readValue(obj.toJson(jsonWriterSettings), type);
+                return JsonUtils.getObjectMapper().readValue(doc.toJson(jsonWriterSettings), type);
             } catch (JsonProcessingException ex) {
                 LOGGER.error("Error trying to parse Process Variables", ex);
                 return null;
@@ -54,7 +54,7 @@ public class ModelUtils {
         }).orElse(null);
     }
 
-    public static BasicDBObject jsonNodeToDBObject(JsonNode jsonNode) {
-        return Optional.ofNullable(jsonNode).map(json -> BasicDBObject.parse(json.toString())).orElse(null);
+    public static Document jsonNodeToDocument(JsonNode jsonNode) {
+        return Optional.ofNullable(jsonNode).map(json -> Document.parse(json.toString())).orElse(null);
     }
 }

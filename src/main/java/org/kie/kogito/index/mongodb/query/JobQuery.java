@@ -27,6 +27,7 @@ import org.kie.kogito.index.mongodb.model.JobEntity;
 
 @ApplicationScoped
 public class JobQuery extends AbstractEntityQuery<Job, JobEntity> {
+
     @Override
     PanacheQuery<JobEntity> queryWithSort(String queryString, Sort sort) {
         return JobEntity.find(queryString, sort);

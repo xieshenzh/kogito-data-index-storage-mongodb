@@ -27,13 +27,18 @@ import io.quarkus.mongodb.panache.runtime.MongoOperations;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
-import org.kie.kogito.index.mongodb.model.DomainEntity;
 import org.kie.kogito.index.mongodb.query.DomainQuery;
+import org.kie.kogito.index.mongodb.utils.ModelUtils;
 import org.kie.kogito.index.mongodb.utils.MongoDBUtils;
 import org.kie.kogito.index.query.Query;
 
+import static org.kie.kogito.index.mongodb.utils.ModelUtils.jsonNodeToDocument;
+import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.getCollection;
+
 @Dependent
 public class DomainCache extends AbstractCache<String, ObjectNode> {
+
+    static String ID = "id";
 
     @Inject
     ProcessIdCache processIdCache;
@@ -60,36 +65,45 @@ public class DomainCache extends AbstractCache<String, ObjectNode> {
 
     @Override
     public ObjectNode get(Object o) {
-        return Optional.ofNullable(MongoDBUtils.getCollection(this.processId, DomainEntity.class).find(new Document(MongoOperations.ID, o)).first()).map(DomainEntity::toDomainObject).orElse(null);
+        return Optional.ofNullable(getCollection(this.processId).find(new Document(MongoOperations.ID, o)).first()).map(d -> {
+            ObjectNode node = ModelUtils.documentToJsonNode(d, ObjectNode.class);
+            node.remove(MongoOperations.ID);
+            node.put(ID, o.toString());
+            return node;
+        }).orElse(null);
     }
 
     @Override
     public ObjectNode put(String s, ObjectNode jsonNodes) {
         ObjectNode oldNode = this.get(s);
-        Optional.ofNullable(DomainEntity.fromDomainObject(s, jsonNodes)).ifPresent(
-                entity -> MongoDBUtils.getCollection(this.processId, DomainEntity.class).replaceOne(
-                        new BsonDocument().append(MongoOperations.ID, new BsonString(entity.processInstanceId)),
-                        entity, new ReplaceOptions().upsert(true)));
+        Optional.ofNullable(jsonNodes).map(n -> {
+            n = n.deepCopy();
+            n.remove(ID);
+            return jsonNodeToDocument(n).append(MongoOperations.ID, new BsonString(s));
+        }).ifPresent(
+                doc -> MongoDBUtils.getCollection(this.processId).replaceOne(
+                        new BsonDocument(MongoOperations.ID, new BsonString(s)),
+                        doc, new ReplaceOptions().upsert(true)));
         Optional.ofNullable(oldNode).map(o -> this.objectUpdatedListener).orElseGet(() -> this.objectCreatedListener).ifPresent(l -> l.accept(jsonNodes));
         return oldNode;
     }
 
     @Override
     public void clear() {
-        MongoDBUtils.getCollection(this.processId, DomainEntity.class).deleteMany(new Document());
+        getCollection(this.processId).deleteMany(new Document());
     }
 
     @Override
     public ObjectNode remove(Object o) {
         ObjectNode oldNode = this.get(o);
-        Optional.ofNullable(oldNode).ifPresent(i -> MongoDBUtils.getCollection(this.processId, DomainEntity.class).deleteOne(new Document().append("_id", o)));
+        Optional.ofNullable(oldNode).ifPresent(i -> getCollection(this.processId).deleteOne(new Document(MongoOperations.ID, o)));
         Optional.ofNullable(oldNode).flatMap(i -> this.objectRemovedListener).ifPresent(l -> l.accept((String) o));
         return oldNode;
     }
 
     @Override
     public int size() {
-        return (int) MongoDBUtils.getCollection(this.processId, DomainEntity.class).countDocuments();
+        return (int) getCollection(this.processId).countDocuments();
     }
 
     @Override

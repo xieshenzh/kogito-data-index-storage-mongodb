@@ -79,8 +79,9 @@ public class TestUtils {
         return newArrayList(ni1, ni2);
     }
 
-    public static ObjectNode createDomainData(String firstName, String lastName) {
+    public static ObjectNode createDomainData(String id, String firstName, String lastName) {
         Map<String, Object> json = new HashMap<>();
+        json.put("id", id);
         Map<String, Object> traveller = new HashMap<>();
         traveller.put("firstName", firstName);
         traveller.put("lastName", lastName);
@@ -106,7 +107,7 @@ public class TestUtils {
     }
 
     private static JsonNode createProcessInstanceVariables() {
-        return createDomainData("Bar", "Swi");
+        return createDomainData(null, "Bar", "Swi");
     }
 
     public static Job createJob(String jobId, String processInstanceId, String processId, String rootProcessInstanceId, String rootProcessId, String status) {

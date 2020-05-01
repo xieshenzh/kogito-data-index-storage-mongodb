@@ -26,6 +26,7 @@ import org.kie.kogito.index.mongodb.model.ProcessIdEntity;
 
 @ApplicationScoped
 public class ProcessIdQuery extends AbstractEntityQuery<String, ProcessIdEntity> {
+
     @Override
     PanacheQuery<ProcessIdEntity> queryWithSort(String queryString, Sort sort) {
         return ProcessIdEntity.find(queryString, sort);

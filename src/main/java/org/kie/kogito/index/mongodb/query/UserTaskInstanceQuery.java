@@ -27,6 +27,7 @@ import org.kie.kogito.index.mongodb.model.UserTaskInstanceEntity;
 
 @ApplicationScoped
 public class UserTaskInstanceQuery extends AbstractEntityQuery<UserTaskInstance, UserTaskInstanceEntity> {
+
     @Override
     PanacheQuery<UserTaskInstanceEntity> queryWithSort(String queryString, Sort sort) {
         return UserTaskInstanceEntity.find(queryString, sort);

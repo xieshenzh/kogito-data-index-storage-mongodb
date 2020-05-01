@@ -22,15 +22,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
 import io.quarkus.mongodb.panache.MongoEntity;
 import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
+import org.bson.Document;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.kie.kogito.index.model.ProcessInstance;
 
-import static org.kie.kogito.index.mongodb.utils.ModelUtils.dbObjectToJsonNode;
+import static org.kie.kogito.index.mongodb.utils.ModelUtils.documentToJsonNode;
 import static org.kie.kogito.index.mongodb.utils.ModelUtils.instantToZonedDateTime;
-import static org.kie.kogito.index.mongodb.utils.ModelUtils.jsonNodeToDBObject;
+import static org.kie.kogito.index.mongodb.utils.ModelUtils.jsonNodeToDocument;
 import static org.kie.kogito.index.mongodb.utils.ModelUtils.zonedDateTimeToInstant;
 
 @MongoEntity(collection = "processinstances")
@@ -43,7 +43,7 @@ public class ProcessInstanceEntity extends PanacheMongoEntityBase {
 
     public Set<String> roles;
 
-    public BasicDBObject variables;
+    public Document variables;
 
     public String endpoint;
 
@@ -80,7 +80,7 @@ public class ProcessInstanceEntity extends PanacheMongoEntityBase {
         instance.setId(entity.id);
         instance.setProcessId(entity.processId);
         instance.setRoles(entity.roles);
-        instance.setVariables(dbObjectToJsonNode(entity.variables, JsonNode.class));
+        instance.setVariables(documentToJsonNode(entity.variables, JsonNode.class));
         instance.setEndpoint(entity.endpoint);
         instance.setNodes(Optional.ofNullable(entity.nodes).map(nodes -> nodes.stream().map(NodeInstanceEntity::toNodeInstance).collect(Collectors.toList())).orElse(null));
         instance.setState(entity.state);
@@ -106,7 +106,7 @@ public class ProcessInstanceEntity extends PanacheMongoEntityBase {
         entity.id = instance.getId();
         entity.processId = instance.getProcessId();
         entity.roles = instance.getRoles();
-        entity.variables = jsonNodeToDBObject(instance.getVariables());
+        entity.variables = jsonNodeToDocument(instance.getVariables());
         entity.endpoint = instance.getEndpoint();
         entity.nodes = Optional.ofNullable(instance.getNodes()).map(nodes -> nodes.stream().map(NodeInstanceEntity::fromNodeInstance).collect(Collectors.toList())).orElse(null);
         entity.state = instance.getState();

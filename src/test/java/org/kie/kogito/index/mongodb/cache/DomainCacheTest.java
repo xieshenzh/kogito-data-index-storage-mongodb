@@ -55,8 +55,8 @@ public class DomainCacheTest {
     @Test
     void testCache() {
         String processInstanceId = UUID.randomUUID().toString();
-        ObjectNode node1 = TestUtils.createDomainData("John", "Doe");
-        ObjectNode node2 = TestUtils.createDomainData("Jane", "Toe");
+        ObjectNode node1 = TestUtils.createDomainData(processInstanceId, "John", "Doe");
+        ObjectNode node2 = TestUtils.createDomainData(processInstanceId, "Jane", "Toe");
         CacheTestBase.testCache(cache, processInstanceId, node1, node2);
     }
 }

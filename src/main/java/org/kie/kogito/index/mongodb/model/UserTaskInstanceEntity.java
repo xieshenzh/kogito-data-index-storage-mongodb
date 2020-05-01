@@ -19,15 +19,15 @@ package org.kie.kogito.index.mongodb.model;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
 import io.quarkus.mongodb.panache.MongoEntity;
 import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
+import org.bson.Document;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.kie.kogito.index.model.UserTaskInstance;
 
-import static org.kie.kogito.index.mongodb.utils.ModelUtils.dbObjectToJsonNode;
+import static org.kie.kogito.index.mongodb.utils.ModelUtils.documentToJsonNode;
 import static org.kie.kogito.index.mongodb.utils.ModelUtils.instantToZonedDateTime;
-import static org.kie.kogito.index.mongodb.utils.ModelUtils.jsonNodeToDBObject;
+import static org.kie.kogito.index.mongodb.utils.ModelUtils.jsonNodeToDocument;
 import static org.kie.kogito.index.mongodb.utils.ModelUtils.zonedDateTimeToInstant;
 
 @MongoEntity(collection = "usertaskinstances")
@@ -72,9 +72,9 @@ public class UserTaskInstanceEntity extends PanacheMongoEntityBase {
 
     public String rootProcessInstanceId;
 
-    public BasicDBObject inputs;
+    public Document inputs;
 
-    public BasicDBObject outputs;
+    public Document outputs;
 
     public static UserTaskInstance toUserTaskInstance(UserTaskInstanceEntity entity) {
         if (entity == null) {
@@ -101,8 +101,8 @@ public class UserTaskInstanceEntity extends PanacheMongoEntityBase {
         instance.setProcessId(entity.processId);
         instance.setRootProcessId(entity.rootProcessId);
         instance.setRootProcessInstanceId(entity.rootProcessInstanceId);
-        instance.setInputs(dbObjectToJsonNode(entity.inputs, JsonNode.class));
-        instance.setOutputs(dbObjectToJsonNode(entity.outputs, JsonNode.class));
+        instance.setInputs(documentToJsonNode(entity.inputs, JsonNode.class));
+        instance.setOutputs(documentToJsonNode(entity.outputs, JsonNode.class));
         return instance;
     }
 
@@ -131,8 +131,8 @@ public class UserTaskInstanceEntity extends PanacheMongoEntityBase {
         entity.processId = instance.getProcessId();
         entity.rootProcessId = instance.getRootProcessId();
         entity.rootProcessInstanceId = instance.getRootProcessInstanceId();
-        entity.inputs = jsonNodeToDBObject(instance.getInputs());
-        entity.outputs = jsonNodeToDBObject(instance.getOutputs());
+        entity.inputs = jsonNodeToDocument(instance.getInputs());
+        entity.outputs = jsonNodeToDocument(instance.getOutputs());
         return entity;
     }
 }

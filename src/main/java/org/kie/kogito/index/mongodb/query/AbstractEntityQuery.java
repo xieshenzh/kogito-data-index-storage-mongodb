@@ -30,14 +30,14 @@ import org.kie.kogito.index.mongodb.utils.MongoDBUtils;
 import org.kie.kogito.index.query.AttributeSort;
 import org.kie.kogito.index.query.SortDirection;
 
-import static java.lang.String.format;
-import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.filterValueAsStringFunction;
+import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_ATTRIBUTE_FUNCTION;
+import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_VALUE_AS_STRING_FUNCTION;
 
 public abstract class AbstractEntityQuery<T, E extends PanacheMongoEntityBase> extends AbstractQuery<T> {
 
     @Override
     public List<T> execute() {
-        Optional<String> queryString = MongoDBUtils.generateQueryString(this.filters, this.getFilterAttributeFunction(), this.getFilterValueAsStringFunction());
+        Optional<String> queryString = MongoDBUtils.generateQueryString(this.filters, FILTER_ATTRIBUTE_FUNCTION, this.getFilterValueAsStringFunction());
         Optional<Sort> sort = generateSort();
         PanacheQuery<E> query = queryString.map(q -> sort.map(s -> queryWithSort(q, s)).orElseGet(() -> query(q)))
                 .orElseGet(() -> sort.map(this::queryAllWithSort).orElseGet(this::queryAll));
@@ -60,11 +60,11 @@ public abstract class AbstractEntityQuery<T, E extends PanacheMongoEntityBase> e
                 return null;
             } else {
                 AttributeSort firstAttributeSort = sortBy.get(0);
-                Sort firstSort = Sort.by(getFilterAttributeFunction().apply(firstAttributeSort.getAttribute()), mapSortDirection(firstAttributeSort.getSort()));
+                Sort firstSort = Sort.by(FILTER_ATTRIBUTE_FUNCTION.apply(firstAttributeSort.getAttribute()), mapSortDirection(firstAttributeSort.getSort()));
                 if (sortBy.size() == 1) {
                     return firstSort;
                 } else {
-                    return sortBy.stream().skip(1).reduce(firstSort, (s, sb) -> s.and(getFilterAttributeFunction().apply(sb.getAttribute()), mapSortDirection(sb.getSort())), (a, b) -> a);
+                    return sortBy.stream().skip(1).reduce(firstSort, (s, sb) -> s.and(FILTER_ATTRIBUTE_FUNCTION.apply(sb.getAttribute()), mapSortDirection(sb.getSort())), (a, b) -> a);
                 }
             }
         });
@@ -87,10 +87,6 @@ public abstract class AbstractEntityQuery<T, E extends PanacheMongoEntityBase> e
     }
 
     BiFunction<String, Object, String> getFilterValueAsStringFunction() {
-        return filterValueAsStringFunction;
-    }
-
-    Function<String, String> getFilterAttributeFunction() {
-        return attribute -> format("'%s'", "id".equalsIgnoreCase(attribute) ? "_id" : attribute);
+        return FILTER_VALUE_AS_STRING_FUNCTION;
     }
 }

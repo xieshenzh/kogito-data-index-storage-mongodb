@@ -66,7 +66,7 @@ public class JobCache extends AbstractCache<String, Job> {
     @Override
     public Job remove(Object o) {
         Job oldJob = this.get(o);
-        Optional.ofNullable(oldJob).ifPresent(i ->JobEntity.deleteById(o));
+        Optional.ofNullable(oldJob).ifPresent(i -> JobEntity.deleteById(o));
         Optional.ofNullable(oldJob).flatMap(i -> this.objectRemovedListener).ifPresent(l -> l.accept((String) o));
         return oldJob;
     }

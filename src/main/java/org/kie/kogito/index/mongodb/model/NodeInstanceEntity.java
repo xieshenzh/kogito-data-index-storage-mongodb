@@ -18,6 +18,7 @@ package org.kie.kogito.index.mongodb.model;
 
 import io.quarkus.mongodb.panache.MongoEntity;
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
+import org.bson.codecs.pojo.annotations.BsonId;
 import org.kie.kogito.index.model.NodeInstance;
 
 import static org.kie.kogito.index.mongodb.utils.ModelUtils.instantToZonedDateTime;
@@ -25,6 +26,9 @@ import static org.kie.kogito.index.mongodb.utils.ModelUtils.zonedDateTimeToInsta
 
 @MongoEntity(collection = "nodeinstances")
 public class NodeInstanceEntity extends PanacheMongoEntity {
+
+    @BsonId
+    public String _id;
 
     public String id;
 

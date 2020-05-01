@@ -19,7 +19,6 @@ package org.kie.kogito.index.mongodb.query;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 import javax.enterprise.context.Dependent;
 
@@ -28,18 +27,16 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
-import org.kie.kogito.index.mongodb.model.DomainEntity;
+import org.kie.kogito.index.mongodb.utils.ModelUtils;
 import org.kie.kogito.index.mongodb.utils.MongoDBUtils;
 import org.kie.kogito.index.query.SortDirection;
 
-import static java.lang.String.format;
-import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.filterValueAsStringFunction;
+import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_ATTRIBUTE_FUNCTION;
+import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_VALUE_AS_STRING_FUNCTION;
 import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.getCollection;
 
 @Dependent
 public class DomainQuery extends AbstractQuery<ObjectNode> {
-
-    private static Function<String, String> filterAttributeFunction = attribute -> format("'domainData.%s'", attribute);
 
     String processId;
 
@@ -49,19 +46,19 @@ public class DomainQuery extends AbstractQuery<ObjectNode> {
 
     @Override
     public List<ObjectNode> execute() {
-        MongoCollection<DomainEntity> collection = getCollection(this.processId, DomainEntity.class);
-        Optional<Document> query = MongoDBUtils.generateQueryString(this.filters, filterAttributeFunction, filterValueAsStringFunction).map(Document::parse);
+        MongoCollection<Document> collection = getCollection(this.processId);
+        Optional<Document> query = MongoDBUtils.generateQueryString(this.filters, FILTER_ATTRIBUTE_FUNCTION, FILTER_VALUE_AS_STRING_FUNCTION).map(Document::parse);
         Optional<Document> sort = this.generateSort();
 
-        FindIterable<DomainEntity> find = query.map(collection::find).orElseGet(collection::find);
+        FindIterable<Document> find = query.map(collection::find).orElseGet(collection::find);
         find = sort.map(find::sort).orElse(find);
         find = Optional.ofNullable(this.offset).map(find::skip).orElse(find);
         find = Optional.ofNullable(this.limit).map(find::limit).orElse(find);
 
         List<ObjectNode> list = new LinkedList<>();
-        try (MongoCursor<DomainEntity> cursor = find.iterator()) {
+        try (MongoCursor<Document> cursor = find.iterator()) {
             while (cursor.hasNext()) {
-                list.add(DomainEntity.toDomainObject(cursor.next()));
+                list.add(ModelUtils.documentToJsonNode(cursor.next(), ObjectNode.class));
             }
         }
         return list;
@@ -69,6 +66,6 @@ public class DomainQuery extends AbstractQuery<ObjectNode> {
 
     private Optional<Document> generateSort() {
         return Optional.ofNullable(this.sortBy).map(sortBy -> sortBy.stream().reduce(
-                new Document(), (d, sb) -> d.append(filterAttributeFunction.apply(sb.getAttribute()), SortDirection.ASC.equals(sb.getSort()) ? 1 : -1), (a, b) -> a));
+                new Document(), (d, sb) -> d.append(FILTER_ATTRIBUTE_FUNCTION.apply(sb.getAttribute()), SortDirection.ASC.equals(sb.getSort()) ? 1 : -1), (a, b) -> a));
     }
 }
