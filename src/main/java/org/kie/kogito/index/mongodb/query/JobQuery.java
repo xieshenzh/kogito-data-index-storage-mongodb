@@ -18,14 +18,11 @@ package org.kie.kogito.index.mongodb.query;
 
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.panache.common.Sort;
 import org.kie.kogito.index.model.Job;
 import org.kie.kogito.index.mongodb.model.JobEntity;
 
-@ApplicationScoped
 public class JobQuery extends AbstractEntityQuery<Job, JobEntity> {
 
     @Override

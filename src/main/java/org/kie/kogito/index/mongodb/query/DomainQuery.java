@@ -20,8 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.Dependent;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -35,12 +33,11 @@ import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_ATTRIBUTE_F
 import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_VALUE_AS_STRING_FUNCTION;
 import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.getCollection;
 
-@Dependent
 public class DomainQuery extends AbstractQuery<ObjectNode> {
 
     String processId;
 
-    public void setProcessId(String processId) {
+    public DomainQuery(String processId) {
         this.processId = processId;
     }
 

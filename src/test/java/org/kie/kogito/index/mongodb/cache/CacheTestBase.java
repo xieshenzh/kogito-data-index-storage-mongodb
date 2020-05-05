@@ -19,7 +19,7 @@ package org.kie.kogito.index.mongodb.cache;
 import org.junit.Assert;
 import org.kie.kogito.index.cache.Cache;
 
-public class CacheTestBase {
+class CacheTestBase {
 
     static <K, V> void testCache(Cache<K, V> cache, K key, V value1, V value2) {
         Assert.assertNull(cache.get(key));

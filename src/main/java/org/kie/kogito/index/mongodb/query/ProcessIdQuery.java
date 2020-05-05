@@ -18,13 +18,13 @@ package org.kie.kogito.index.mongodb.query;
 
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.quarkus.mongodb.panache.PanacheQuery;
+import io.quarkus.mongodb.panache.runtime.MongoOperations;
 import io.quarkus.panache.common.Sort;
 import org.kie.kogito.index.mongodb.model.ProcessIdEntity;
 
-@ApplicationScoped
+import static java.lang.String.format;
+
 public class ProcessIdQuery extends AbstractEntityQuery<String, ProcessIdEntity> {
 
     @Override
@@ -45,6 +45,11 @@ public class ProcessIdQuery extends AbstractEntityQuery<String, ProcessIdEntity>
     @Override
     PanacheQuery<ProcessIdEntity> queryAll() {
         return ProcessIdEntity.findAll();
+    }
+
+    @Override
+    Function<String, String> getFilterAttributeFunction() {
+        return attribute -> format("'%s'", "processId".equalsIgnoreCase(attribute) ? MongoOperations.ID : attribute);
     }
 
     @Override

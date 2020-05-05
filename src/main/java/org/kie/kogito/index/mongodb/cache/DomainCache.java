@@ -43,19 +43,15 @@ public class DomainCache extends AbstractCache<String, ObjectNode> {
     @Inject
     ProcessIdCache processIdCache;
 
-    @Inject
-    DomainQuery domainQuery;
-
     String processId;
 
     public void setProcessId(String processId) {
         this.processId = processId;
-        this.domainQuery.setProcessId(processId);
     }
 
     @Override
     public Query<ObjectNode> query() {
-        return domainQuery;
+        return new DomainQuery(this.processId);
     }
 
     @Override

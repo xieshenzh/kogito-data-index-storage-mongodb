@@ -19,7 +19,6 @@ package org.kie.kogito.index.mongodb.cache;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.kie.kogito.index.model.ProcessInstance;
 import org.kie.kogito.index.mongodb.model.ProcessInstanceEntity;
@@ -29,12 +28,9 @@ import org.kie.kogito.index.query.Query;
 @ApplicationScoped
 public class ProcessInstanceCache extends AbstractCache<String, ProcessInstance> {
 
-    @Inject
-    ProcessInstanceQuery processInstanceQuery;
-
     @Override
     public Query<ProcessInstance> query() {
-        return processInstanceQuery;
+        return new ProcessInstanceQuery();
     }
 
     @Override

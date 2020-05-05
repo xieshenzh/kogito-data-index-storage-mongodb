@@ -19,7 +19,6 @@ package org.kie.kogito.index.mongodb.cache;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.kie.kogito.index.model.Job;
 import org.kie.kogito.index.mongodb.model.JobEntity;
@@ -29,12 +28,9 @@ import org.kie.kogito.index.query.Query;
 @ApplicationScoped
 public class JobCache extends AbstractCache<String, Job> {
 
-    @Inject
-    JobQuery jobQuery;
-
     @Override
     public Query<Job> query() {
-        return jobQuery;
+        return new JobQuery();
     }
 
     @Override

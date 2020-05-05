@@ -18,14 +18,11 @@ package org.kie.kogito.index.mongodb.query;
 
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.panache.common.Sort;
 import org.kie.kogito.index.model.UserTaskInstance;
 import org.kie.kogito.index.mongodb.model.UserTaskInstanceEntity;
 
-@ApplicationScoped
 public class UserTaskInstanceQuery extends AbstractEntityQuery<UserTaskInstance, UserTaskInstanceEntity> {
 
     @Override

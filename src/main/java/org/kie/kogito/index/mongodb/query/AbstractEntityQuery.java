@@ -37,7 +37,7 @@ public abstract class AbstractEntityQuery<T, E extends PanacheMongoEntityBase> e
 
     @Override
     public List<T> execute() {
-        Optional<String> queryString = MongoDBUtils.generateQueryString(this.filters, FILTER_ATTRIBUTE_FUNCTION, this.getFilterValueAsStringFunction());
+        Optional<String> queryString = MongoDBUtils.generateQueryString(this.filters, this.getFilterAttributeFunction(), this.getFilterValueAsStringFunction());
         Optional<Sort> sort = generateSort();
         PanacheQuery<E> query = queryString.map(q -> sort.map(s -> queryWithSort(q, s)).orElseGet(() -> query(q)))
                 .orElseGet(() -> sort.map(this::queryAllWithSort).orElseGet(this::queryAll));
@@ -60,11 +60,11 @@ public abstract class AbstractEntityQuery<T, E extends PanacheMongoEntityBase> e
                 return null;
             } else {
                 AttributeSort firstAttributeSort = sortBy.get(0);
-                Sort firstSort = Sort.by(FILTER_ATTRIBUTE_FUNCTION.apply(firstAttributeSort.getAttribute()), mapSortDirection(firstAttributeSort.getSort()));
+                Sort firstSort = Sort.by(this.getFilterAttributeFunction().apply(firstAttributeSort.getAttribute()), mapSortDirection(firstAttributeSort.getSort()));
                 if (sortBy.size() == 1) {
                     return firstSort;
                 } else {
-                    return sortBy.stream().skip(1).reduce(firstSort, (s, sb) -> s.and(FILTER_ATTRIBUTE_FUNCTION.apply(sb.getAttribute()), mapSortDirection(sb.getSort())), (a, b) -> a);
+                    return sortBy.stream().skip(1).reduce(firstSort, (s, sb) -> s.and(this.getFilterAttributeFunction().apply(sb.getAttribute()), mapSortDirection(sb.getSort())), (a, b) -> a);
                 }
             }
         });
@@ -72,7 +72,7 @@ public abstract class AbstractEntityQuery<T, E extends PanacheMongoEntityBase> e
 
     private Optional<Page> generatePage() {
         Optional<Integer> offset = Optional.ofNullable(this.offset);
-        return Optional.ofNullable(this.limit).map(Page::ofSize).map(p -> offset.map(p::index))
+        return Optional.ofNullable(this.limit).map(Page::ofSize).map(p -> offset.map(o -> p.index(o / p.size)))
                 .orElseGet(() -> offset.map(o -> Page.of(o, Integer.MAX_VALUE)));
     }
 
@@ -88,5 +88,9 @@ public abstract class AbstractEntityQuery<T, E extends PanacheMongoEntityBase> e
 
     BiFunction<String, Object, String> getFilterValueAsStringFunction() {
         return FILTER_VALUE_AS_STRING_FUNCTION;
+    }
+
+    Function<String, String> getFilterAttributeFunction() {
+        return FILTER_ATTRIBUTE_FUNCTION;
     }
 }

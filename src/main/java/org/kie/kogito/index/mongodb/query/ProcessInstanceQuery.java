@@ -19,14 +19,11 @@ package org.kie.kogito.index.mongodb.query;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.panache.common.Sort;
 import org.kie.kogito.index.model.ProcessInstance;
 import org.kie.kogito.index.mongodb.model.ProcessInstanceEntity;
 
-@ApplicationScoped
 public class ProcessInstanceQuery extends AbstractEntityQuery<ProcessInstance, ProcessInstanceEntity> {
 
     @Override

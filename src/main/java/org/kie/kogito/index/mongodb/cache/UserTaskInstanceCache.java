@@ -19,7 +19,6 @@ package org.kie.kogito.index.mongodb.cache;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.kie.kogito.index.model.UserTaskInstance;
 import org.kie.kogito.index.mongodb.model.UserTaskInstanceEntity;
@@ -29,12 +28,9 @@ import org.kie.kogito.index.query.Query;
 @ApplicationScoped
 public class UserTaskInstanceCache extends AbstractCache<String, UserTaskInstance> {
 
-    @Inject
-    UserTaskInstanceQuery userTaskInstanceQuery;
-
     @Override
     public Query<UserTaskInstance> query() {
-        return userTaskInstanceQuery;
+        return new UserTaskInstanceQuery();
     }
 
     @Override

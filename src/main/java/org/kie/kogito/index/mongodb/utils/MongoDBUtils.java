@@ -39,11 +39,11 @@ public class MongoDBUtils {
         return MongoOperations.mongoDatabase(Document.class).getCollection(processId + "_domain", Document.class);
     }
 
-    public static Optional<String> generateQueryString(List<AttributeFilter> filters, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
+    public static Optional<String> generateQueryString(List<AttributeFilter<?>> filters, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
         return Optional.ofNullable(filters).map(fs -> format("{ %s }", fs.stream().map(f -> generateSingleQueryString(f, filterAttributeFunction, filterValueFunction)).collect(joining(", "))));
     }
 
-    private static String generateSingleQueryString(AttributeFilter filter, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
+    private static String generateSingleQueryString(AttributeFilter<?> filter, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
         switch (filter.getCondition()) {
             case CONTAINS:
             case EQUAL:
@@ -73,9 +73,9 @@ public class MongoDBUtils {
             case CONTAINS_ANY:
                 return format("$or: [ %s ]", ((List) filter.getValue()).stream().map(v -> filterValueFunction.apply(filter.getAttribute(), v)).map(v -> format("{ %s: { $in: [ %s ] } }", filterAttributeFunction.apply(filter.getAttribute()), v)).collect(joining(", ")));
             case OR:
-                return format("$or: [ %s ]", ((List<AttributeFilter>) filter.getValue()).stream().map(f -> format("{ %s }", generateSingleQueryString(f, filterAttributeFunction, filterValueFunction))).collect(joining(", ")));
+                return format("$or: [ %s ]", ((List<AttributeFilter<?>>) filter.getValue()).stream().map(f -> format("{ %s }", generateSingleQueryString(f, filterAttributeFunction, filterValueFunction))).collect(joining(", ")));
             case AND:
-                return format("$and: [ %s ]", ((List<AttributeFilter>) filter.getValue()).stream().map(f -> format("{ %s }", generateSingleQueryString(f, filterAttributeFunction, filterValueFunction))).collect(joining(", ")));
+                return format("$and: [ %s ]", ((List<AttributeFilter<?>>) filter.getValue()).stream().map(f -> format("{ %s }", generateSingleQueryString(f, filterAttributeFunction, filterValueFunction))).collect(joining(", ")));
             default:
                 return null;
         }
