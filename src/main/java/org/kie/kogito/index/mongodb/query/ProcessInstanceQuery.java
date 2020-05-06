@@ -17,43 +17,34 @@
 package org.kie.kogito.index.mongodb.query;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
-import io.quarkus.mongodb.panache.PanacheQuery;
-import io.quarkus.panache.common.Sort;
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
+
+import com.mongodb.client.MongoCollection;
 import org.kie.kogito.index.model.ProcessInstance;
+import org.kie.kogito.index.mongodb.cache.ProcessInstanceCache;
 import org.kie.kogito.index.mongodb.model.ProcessInstanceEntity;
 
-public class ProcessInstanceQuery extends AbstractEntityQuery<ProcessInstance, ProcessInstanceEntity> {
+@Dependent
+public class ProcessInstanceQuery extends AbstractQuery<ProcessInstance, ProcessInstanceEntity> {
+
+    @Inject
+    ProcessInstanceCache processInstanceCache;
 
     @Override
-    PanacheQuery<ProcessInstanceEntity> queryWithSort(String queryString, Sort sort) {
-        return ProcessInstanceEntity.find(queryString, sort);
+    MongoCollection<ProcessInstanceEntity> getCollection() {
+        return processInstanceCache.getCollection();
     }
 
     @Override
-    PanacheQuery<ProcessInstanceEntity> queryAllWithSort(Sort sort) {
-        return ProcessInstanceEntity.findAll(sort);
-    }
-
-    @Override
-    PanacheQuery<ProcessInstanceEntity> query(String queryString) {
-        return ProcessInstanceEntity.find(queryString);
-    }
-
-    @Override
-    PanacheQuery<ProcessInstanceEntity> queryAll() {
-        return ProcessInstanceEntity.findAll();
+    ProcessInstance mapToModel(ProcessInstanceEntity processInstanceEntity) {
+        return ProcessInstanceEntity.toProcessInstance(processInstanceEntity);
     }
 
     @Override
     BiFunction<String, Object, String> getFilterValueAsStringFunction() {
         return (attribute, value) -> "state".equalsIgnoreCase(attribute) ? value.toString()
                 : super.getFilterValueAsStringFunction().apply(attribute, value);
-    }
-
-    @Override
-    Function<ProcessInstanceEntity, ProcessInstance> convertFunction() {
-        return ProcessInstanceEntity::toProcessInstance;
     }
 }

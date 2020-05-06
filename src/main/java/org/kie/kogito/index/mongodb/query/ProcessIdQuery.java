@@ -18,33 +18,30 @@ package org.kie.kogito.index.mongodb.query;
 
 import java.util.function.Function;
 
-import io.quarkus.mongodb.panache.PanacheQuery;
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
+
+import com.mongodb.client.MongoCollection;
 import io.quarkus.mongodb.panache.runtime.MongoOperations;
-import io.quarkus.panache.common.Sort;
+import org.kie.kogito.index.mongodb.cache.ProcessIdCache;
 import org.kie.kogito.index.mongodb.model.ProcessIdEntity;
 
 import static java.lang.String.format;
 
-public class ProcessIdQuery extends AbstractEntityQuery<String, ProcessIdEntity> {
+@Dependent
+public class ProcessIdQuery extends AbstractQuery<String, ProcessIdEntity> {
+
+    @Inject
+    ProcessIdCache processIdCache;
 
     @Override
-    PanacheQuery<ProcessIdEntity> queryWithSort(String queryString, Sort sort) {
-        return ProcessIdEntity.find(queryString, sort);
+    MongoCollection<ProcessIdEntity> getCollection() {
+        return processIdCache.getCollection();
     }
 
     @Override
-    PanacheQuery<ProcessIdEntity> queryAllWithSort(Sort sort) {
-        return ProcessIdEntity.findAll(sort);
-    }
-
-    @Override
-    PanacheQuery<ProcessIdEntity> query(String queryString) {
-        return ProcessIdEntity.find(queryString);
-    }
-
-    @Override
-    PanacheQuery<ProcessIdEntity> queryAll() {
-        return ProcessIdEntity.findAll();
+    String mapToModel(ProcessIdEntity processIdEntity) {
+        return processIdEntity.fullTypeName;
     }
 
     @Override
@@ -53,7 +50,7 @@ public class ProcessIdQuery extends AbstractEntityQuery<String, ProcessIdEntity>
     }
 
     @Override
-    Function<ProcessIdEntity, String> convertFunction() {
-        return e -> e.fullTypeName;
+    Function<String, String> getSortAttributeFunction() {
+        return attribute -> format("%s", "processId".equalsIgnoreCase(attribute) ? MongoOperations.ID : attribute);
     }
 }

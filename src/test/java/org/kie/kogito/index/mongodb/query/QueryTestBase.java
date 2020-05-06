@@ -47,11 +47,11 @@ class QueryTestBase {
     }
 
     static BiConsumer<List<ObjectNode>, String[]> assertWithObjectNodeInOrder() {
-        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting(n -> n.get("_id").asText()).containsExactly(ids);
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting(n -> n.get("id").asText()).containsExactly(ids);
     }
 
     static BiConsumer<List<ObjectNode>, String[]> assertWithObjectNode() {
-        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting(n -> n.get("_id").asText()).containsExactlyInAnyOrder(ids);
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting(n -> n.get("id").asText()).containsExactlyInAnyOrder(ids);
     }
 
     static <K, V> void queryAndAssert(BiConsumer<List<V>, String[]> assertConsumer, Cache<K, V> cache, List<AttributeFilter<?>> filters, List<AttributeSort> sort, Integer offset, Integer limit, String... ids) {

@@ -21,23 +21,19 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import com.mongodb.client.MongoCollection;
 import io.quarkus.mongodb.panache.runtime.MongoOperations;
-import org.bson.Document;
 import org.kie.kogito.index.query.AttributeFilter;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 
-public class MongoDBUtils {
+public class QueryUtils {
 
     public static Function<String, String> FILTER_ATTRIBUTE_FUNCTION = attribute -> format("'%s'", "id".equalsIgnoreCase(attribute) ? MongoOperations.ID : attribute);
 
-    public static BiFunction<String, Object, String> FILTER_VALUE_AS_STRING_FUNCTION = (attribute, value) -> value instanceof String ? "'" + value + "'" : value.toString();
+    public static Function<String, String> SORT_ATTRIBUTE_FUNCTION = attribute -> format("%s", "id".equalsIgnoreCase(attribute) ? MongoOperations.ID : attribute);
 
-    public static MongoCollection<Document> getCollection(String processId) {
-        return MongoOperations.mongoDatabase(Document.class).getCollection(processId + "_domain", Document.class);
-    }
+    public static BiFunction<String, Object, String> FILTER_VALUE_AS_STRING_FUNCTION = (attribute, value) -> value instanceof String ? "'" + value + "'" : value.toString();
 
     public static Optional<String> generateQueryString(List<AttributeFilter<?>> filters, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
         return Optional.ofNullable(filters).map(fs -> format("{ %s }", fs.stream().map(f -> generateSingleQueryString(f, filterAttributeFunction, filterValueFunction)).collect(joining(", "))));

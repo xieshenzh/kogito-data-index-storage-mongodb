@@ -16,64 +16,45 @@
 
 package org.kie.kogito.index.mongodb.cache;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
+import com.mongodb.client.MongoCollection;
+import io.quarkus.mongodb.panache.runtime.MongoOperations;
 import org.kie.kogito.index.model.Job;
 import org.kie.kogito.index.mongodb.model.JobEntity;
 import org.kie.kogito.index.mongodb.query.JobQuery;
 import org.kie.kogito.index.query.Query;
 
 @ApplicationScoped
-public class JobCache extends AbstractCache<String, Job> {
+public class JobCache extends AbstractCache<String, Job, JobEntity> {
+
+    @Inject
+    Provider<JobQuery> jobQueryProvider;
+
+    @Override
+    public MongoCollection<JobEntity> getCollection() {
+        return MongoOperations.mongoCollection(JobEntity.class);
+    }
+
+    @Override
+    JobEntity mapToEntity(String key, Job value) {
+        return JobEntity.fromJob(value);
+    }
+
+    @Override
+    Job mapToModel(String key, JobEntity entity) {
+        return JobEntity.toJob(entity);
+    }
 
     @Override
     public Query<Job> query() {
-        return new JobQuery();
+        return jobQueryProvider.get();
     }
 
     @Override
     public String getRootType() {
         return Job.class.getName();
-    }
-
-    @Override
-    public Job get(Object o) {
-        return JobEntity.<JobEntity>findByIdOptional(o).map(JobEntity::toJob).orElse(null);
-    }
-
-    @Override
-    public Job put(String s, Job job) {
-        if (!s.equals(job.getId())) {
-            throw new IllegalArgumentException("Job id doesn't match the key of the cache entry");
-        }
-        Job oldJob = this.get(s);
-        Optional.ofNullable(JobEntity.fromJob(job)).ifPresent(entity -> entity.persistOrUpdate());
-        Optional.ofNullable(oldJob).map(o -> this.objectUpdatedListener).orElseGet(() -> this.objectCreatedListener).ifPresent(l -> l.accept(job));
-        return oldJob;
-    }
-
-    @Override
-    public void clear() {
-        JobEntity.deleteAll();
-    }
-
-    @Override
-    public Job remove(Object o) {
-        Job oldJob = this.get(o);
-        Optional.ofNullable(oldJob).ifPresent(i -> JobEntity.deleteById(o));
-        Optional.ofNullable(oldJob).flatMap(i -> this.objectRemovedListener).ifPresent(l -> l.accept((String) o));
-        return oldJob;
-    }
-
-    @Override
-    public int size() {
-        return (int) JobEntity.count();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return this.size() == 0;
     }
 }

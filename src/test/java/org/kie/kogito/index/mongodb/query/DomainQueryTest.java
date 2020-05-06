@@ -15,6 +15,7 @@ import org.kie.kogito.index.cache.Cache;
 import org.kie.kogito.index.cache.CacheService;
 import org.kie.kogito.index.mongodb.MongoDBServerTestResource;
 import org.kie.kogito.index.mongodb.TestUtils;
+import org.kie.kogito.index.query.SortDirection;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -36,6 +37,7 @@ import static org.kie.kogito.index.query.QueryFilterFactory.lessThanEqual;
 import static org.kie.kogito.index.query.QueryFilterFactory.like;
 import static org.kie.kogito.index.query.QueryFilterFactory.notNull;
 import static org.kie.kogito.index.query.QueryFilterFactory.or;
+import static org.kie.kogito.index.query.QueryFilterFactory.orderBy;
 
 @QuarkusTest
 @QuarkusTestResource(MongoDBServerTestResource.class)
@@ -85,9 +87,9 @@ public class DomainQueryTest {
         queryAndAssert(assertWithObjectNode(), cache, singletonList(or(asList(equalTo("traveller.firstName", "John"), equalTo("traveller.firstName", "Jane")))), null, null, null, processInstanceId1, processInstanceId2);
         queryAndAssert(assertWithObjectNode(), cache, asList(equalTo("traveller.firstName", "John"), equalTo("traveller.lastName", "Toe")), null, null, null);
 
-//        queryAndAssert(assertWithObjectNodeInOrder(), cache, asList(in("traveller.firstName", asList("Jane", "John")), in("traveller.lastName", asList("Doe", "Toe"))), singletonList(orderBy("traveller.lastName", SortDirection.ASC)), 1, 1, processInstanceId2);
-//        queryAndAssert(assertWithObjectNodeInOrder(), cache, null, singletonList(orderBy("traveller.firstName", SortDirection.ASC)), null, null, processInstanceId2, processInstanceId1);
+        queryAndAssert(assertWithObjectNodeInOrder(), cache, asList(in("traveller.firstName", asList("Jane", "John")), in("traveller.lastName", asList("Doe", "Toe"))), singletonList(orderBy("traveller.lastName", SortDirection.ASC)), 1, 1, processInstanceId2);
+        queryAndAssert(assertWithObjectNodeInOrder(), cache, null, singletonList(orderBy("traveller.firstName", SortDirection.ASC)), null, null, processInstanceId2, processInstanceId1);
         queryAndAssert(assertWithObjectNodeInOrder(), cache, null, null, 1, 1, processInstanceId2);
-//        queryAndAssert(assertWithObjectNodeInOrder(), cache, null, singletonList(orderBy("traveller.firstName", SortDirection.ASC)), 1, 1, processInstanceId1);
+        queryAndAssert(assertWithObjectNodeInOrder(), cache, null, asList(orderBy("traveller.firstName", SortDirection.DESC), orderBy("traveller.lastName", SortDirection.ASC)), 1, 1, processInstanceId2);
     }
 }

@@ -16,37 +16,27 @@
 
 package org.kie.kogito.index.mongodb.query;
 
-import java.util.function.Function;
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 
-import io.quarkus.mongodb.panache.PanacheQuery;
-import io.quarkus.panache.common.Sort;
+import com.mongodb.client.MongoCollection;
 import org.kie.kogito.index.model.Job;
+import org.kie.kogito.index.mongodb.cache.JobCache;
 import org.kie.kogito.index.mongodb.model.JobEntity;
 
-public class JobQuery extends AbstractEntityQuery<Job, JobEntity> {
+@Dependent
+public class JobQuery extends AbstractQuery<Job, JobEntity> {
+
+    @Inject
+    JobCache jobCache;
 
     @Override
-    PanacheQuery<JobEntity> queryWithSort(String queryString, Sort sort) {
-        return JobEntity.find(queryString, sort);
+    MongoCollection<JobEntity> getCollection() {
+        return jobCache.getCollection();
     }
 
     @Override
-    PanacheQuery<JobEntity> queryAllWithSort(Sort sort) {
-        return JobEntity.findAll(sort);
-    }
-
-    @Override
-    PanacheQuery<JobEntity> query(String queryString) {
-        return JobEntity.find(queryString);
-    }
-
-    @Override
-    PanacheQuery<JobEntity> queryAll() {
-        return JobEntity.findAll();
-    }
-
-    @Override
-    Function<JobEntity, Job> convertFunction() {
-        return JobEntity::toJob;
+    Job mapToModel(JobEntity entity) {
+        return JobEntity.toJob(entity);
     }
 }

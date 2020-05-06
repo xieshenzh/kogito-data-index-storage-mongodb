@@ -16,53 +16,32 @@
 
 package org.kie.kogito.index.mongodb.query;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import javax.enterprise.context.Dependent;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import org.bson.Document;
-import org.kie.kogito.index.mongodb.utils.ModelUtils;
-import org.kie.kogito.index.mongodb.utils.MongoDBUtils;
-import org.kie.kogito.index.query.SortDirection;
+import org.kie.kogito.index.mongodb.cache.DomainCache;
+import org.kie.kogito.index.mongodb.model.DomainEntity;
 
-import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_ATTRIBUTE_FUNCTION;
-import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.FILTER_VALUE_AS_STRING_FUNCTION;
-import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.getCollection;
+import static io.quarkus.mongodb.panache.runtime.MongoOperations.ID;
 
-public class DomainQuery extends AbstractQuery<ObjectNode> {
+@Dependent
+public class DomainQuery extends AbstractQuery<ObjectNode, Document> {
 
-    String processId;
+    DomainCache domainCache;
 
-    public DomainQuery(String processId) {
-        this.processId = processId;
+    public void setDomainCache(DomainCache domainCache) {
+        this.domainCache = domainCache;
     }
 
     @Override
-    public List<ObjectNode> execute() {
-        MongoCollection<Document> collection = getCollection(this.processId);
-        Optional<Document> query = MongoDBUtils.generateQueryString(this.filters, FILTER_ATTRIBUTE_FUNCTION, FILTER_VALUE_AS_STRING_FUNCTION).map(Document::parse);
-        Optional<Document> sort = this.generateSort();
-
-        FindIterable<Document> find = query.map(collection::find).orElseGet(collection::find);
-        find = sort.map(find::sort).orElse(find);
-        find = Optional.ofNullable(this.offset).map(find::skip).orElse(find);
-        find = Optional.ofNullable(this.limit).map(find::limit).orElse(find);
-
-        List<ObjectNode> list = new LinkedList<>();
-        try (MongoCursor<Document> cursor = find.iterator()) {
-            while (cursor.hasNext()) {
-                list.add(ModelUtils.documentToJsonNode(cursor.next(), ObjectNode.class));
-            }
-        }
-        return list;
+    MongoCollection<Document> getCollection() {
+        return domainCache.getCollection();
     }
 
-    private Optional<Document> generateSort() {
-        return Optional.ofNullable(this.sortBy).map(sortBy -> sortBy.stream().reduce(
-                new Document(), (d, sb) -> d.append(FILTER_ATTRIBUTE_FUNCTION.apply(sb.getAttribute()), SortDirection.ASC.equals(sb.getSort()) ? 1 : -1), (a, b) -> a));
+    @Override
+    ObjectNode mapToModel(Document document) {
+        return DomainEntity.toObjectNode(document.getString(ID), document);
     }
 }

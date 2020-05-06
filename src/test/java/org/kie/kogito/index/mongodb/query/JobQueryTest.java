@@ -16,6 +16,7 @@ import org.kie.kogito.index.cache.CacheService;
 import org.kie.kogito.index.model.Job;
 import org.kie.kogito.index.mongodb.MongoDBServerTestResource;
 import org.kie.kogito.index.mongodb.TestUtils;
+import org.kie.kogito.index.query.SortDirection;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -37,6 +38,7 @@ import static org.kie.kogito.index.query.QueryFilterFactory.lessThanEqual;
 import static org.kie.kogito.index.query.QueryFilterFactory.like;
 import static org.kie.kogito.index.query.QueryFilterFactory.notNull;
 import static org.kie.kogito.index.query.QueryFilterFactory.or;
+import static org.kie.kogito.index.query.QueryFilterFactory.orderBy;
 
 @QuarkusTest
 @QuarkusTestResource(MongoDBServerTestResource.class)
@@ -88,9 +90,9 @@ public class JobQueryTest {
         queryAndAssert(assertWithId(), cache, singletonList(or(asList(equalTo("id", jobId1), equalTo("id", jobId2)))), null, null, null, jobId1, jobId2);
         queryAndAssert(assertWithId(), cache, asList(equalTo("id", jobId1), equalTo("processInstanceId", processInstanceId2)), null, null, null);
 
-//        queryAndAssert(assertWithIdInOrder(), cache, asList(in("id", asList(jobId1, jobId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("status", SortDirection.ASC)), 1, 1, jobId2);
-//        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("status", SortDirection.DESC)), null, null, jobId2, jobId1);
+        queryAndAssert(assertWithIdInOrder(), cache, asList(in("id", asList(jobId1, jobId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("status", SortDirection.ASC)), 1, 1, jobId2);
+        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("status", SortDirection.DESC)), null, null, jobId2, jobId1);
         queryAndAssert(assertWithIdInOrder(), cache, null, null, 1, 1, jobId2);
-//        queryAndAssert(assertWithIdInOrder, cache, null, singletonList(orderBy("status", SortDirection.ASC)), 1, 1, jobId2);
+        queryAndAssert(assertWithIdInOrder(), cache, null, asList(orderBy("status", SortDirection.ASC), orderBy("priority", SortDirection.ASC)), 1, 1, jobId2);
     }
 }

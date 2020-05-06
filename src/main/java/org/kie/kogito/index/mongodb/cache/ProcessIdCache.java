@@ -16,60 +16,44 @@
 
 package org.kie.kogito.index.mongodb.cache;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
+import com.mongodb.client.MongoCollection;
+import io.quarkus.mongodb.panache.runtime.MongoOperations;
 import org.kie.kogito.index.mongodb.model.ProcessIdEntity;
 import org.kie.kogito.index.mongodb.query.ProcessIdQuery;
 import org.kie.kogito.index.query.Query;
 
 @ApplicationScoped
-public class ProcessIdCache extends AbstractCache<String, String> {
+public class ProcessIdCache extends AbstractCache<String, String, ProcessIdEntity> {
+
+    @Inject
+    Provider<ProcessIdQuery> processIdQueryProvider;
+
+    @Override
+    public MongoCollection<ProcessIdEntity> getCollection() {
+        return MongoOperations.mongoCollection(ProcessIdEntity.class);
+    }
+
+    @Override
+    ProcessIdEntity mapToEntity(String key, String value) {
+        return new ProcessIdEntity(key, value);
+    }
+
+    @Override
+    String mapToModel(String key, ProcessIdEntity entity) {
+        return entity.fullTypeName;
+    }
 
     @Override
     public Query<String> query() {
-        return new ProcessIdQuery();
+        return processIdQueryProvider.get();
     }
 
     @Override
     public String getRootType() {
         return String.class.getName();
-    }
-
-    @Override
-    public String get(Object o) {
-        return ProcessIdEntity.<ProcessIdEntity>findByIdOptional(o).map(e -> e.fullTypeName).orElse(null);
-    }
-
-    @Override
-    public String put(String processId, String fullTypeName) {
-        String oldType = this.get(processId);
-        Optional.of(new ProcessIdEntity(processId, fullTypeName)).ifPresent(entity -> entity.persistOrUpdate());
-        Optional.ofNullable(oldType).map(o -> this.objectUpdatedListener).orElseGet(() -> this.objectCreatedListener).ifPresent(l -> l.accept(fullTypeName));
-        return oldType;
-    }
-
-    @Override
-    public void clear() {
-        ProcessIdEntity.deleteAll();
-    }
-
-    @Override
-    public String remove(Object o) {
-        String oldType = this.get(o);
-        Optional.ofNullable(oldType).ifPresent(i -> ProcessIdEntity.deleteById(o));
-        Optional.ofNullable(oldType).flatMap(i -> this.objectRemovedListener).ifPresent(l -> l.accept((String) o));
-        return oldType;
-    }
-
-    @Override
-    public int size() {
-        return (int) ProcessIdEntity.count();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return this.size() == 0;
     }
 }

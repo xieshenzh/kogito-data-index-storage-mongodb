@@ -16,32 +16,28 @@
 
 package org.kie.kogito.index.mongodb.cache;
 
-import java.util.Optional;
-
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.MongoCollection;
 import io.quarkus.mongodb.panache.runtime.MongoOperations;
-import org.bson.BsonDocument;
-import org.bson.BsonString;
 import org.bson.Document;
+import org.kie.kogito.index.mongodb.model.DomainEntity;
 import org.kie.kogito.index.mongodb.query.DomainQuery;
-import org.kie.kogito.index.mongodb.utils.ModelUtils;
-import org.kie.kogito.index.mongodb.utils.MongoDBUtils;
 import org.kie.kogito.index.query.Query;
 
-import static org.kie.kogito.index.mongodb.utils.ModelUtils.jsonNodeToDocument;
-import static org.kie.kogito.index.mongodb.utils.MongoDBUtils.getCollection;
-
 @Dependent
-public class DomainCache extends AbstractCache<String, ObjectNode> {
+public class DomainCache extends AbstractCache<String, ObjectNode, Document> {
 
-    static String ID = "id";
+    public static String ID = "id";
 
     @Inject
     ProcessIdCache processIdCache;
+
+    @Inject
+    Provider<DomainQuery> domainQueryProvider;
 
     String processId;
 
@@ -50,60 +46,29 @@ public class DomainCache extends AbstractCache<String, ObjectNode> {
     }
 
     @Override
+    public MongoCollection<Document> getCollection() {
+        return MongoOperations.mongoDatabase(Document.class).getCollection(this.processId + "_domain", Document.class);
+    }
+
+    @Override
+    Document mapToEntity(String key, ObjectNode value) {
+        return DomainEntity.fromObjectNode(key, value);
+    }
+
+    @Override
+    ObjectNode mapToModel(String key, Document entity) {
+        return DomainEntity.toObjectNode(key, entity);
+    }
+
+    @Override
     public Query<ObjectNode> query() {
-        return new DomainQuery(this.processId);
+        DomainQuery query = domainQueryProvider.get();
+        query.setDomainCache(this);
+        return query;
     }
 
     @Override
     public String getRootType() {
         return processIdCache.get(processId);
-    }
-
-    @Override
-    public ObjectNode get(Object o) {
-        return Optional.ofNullable(getCollection(this.processId).find(new Document(MongoOperations.ID, o)).first()).map(d -> {
-            ObjectNode node = ModelUtils.documentToJsonNode(d, ObjectNode.class);
-            node.remove(MongoOperations.ID);
-            node.put(ID, o.toString());
-            return node;
-        }).orElse(null);
-    }
-
-    @Override
-    public ObjectNode put(String s, ObjectNode jsonNodes) {
-        ObjectNode oldNode = this.get(s);
-        Optional.ofNullable(jsonNodes).map(n -> {
-            n = n.deepCopy();
-            n.remove(ID);
-            return jsonNodeToDocument(n).append(MongoOperations.ID, new BsonString(s));
-        }).ifPresent(
-                doc -> MongoDBUtils.getCollection(this.processId).replaceOne(
-                        new BsonDocument(MongoOperations.ID, new BsonString(s)),
-                        doc, new ReplaceOptions().upsert(true)));
-        Optional.ofNullable(oldNode).map(o -> this.objectUpdatedListener).orElseGet(() -> this.objectCreatedListener).ifPresent(l -> l.accept(jsonNodes));
-        return oldNode;
-    }
-
-    @Override
-    public void clear() {
-        getCollection(this.processId).deleteMany(new Document());
-    }
-
-    @Override
-    public ObjectNode remove(Object o) {
-        ObjectNode oldNode = this.get(o);
-        Optional.ofNullable(oldNode).ifPresent(i -> getCollection(this.processId).deleteOne(new Document(MongoOperations.ID, o)));
-        Optional.ofNullable(oldNode).flatMap(i -> this.objectRemovedListener).ifPresent(l -> l.accept((String) o));
-        return oldNode;
-    }
-
-    @Override
-    public int size() {
-        return (int) getCollection(this.processId).countDocuments();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return this.size() == 0;
     }
 }

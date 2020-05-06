@@ -16,13 +16,32 @@
 
 package org.kie.kogito.index.mongodb.query;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.kie.kogito.index.mongodb.utils.QueryUtils;
 import org.kie.kogito.index.query.AttributeFilter;
 import org.kie.kogito.index.query.AttributeSort;
 import org.kie.kogito.index.query.Query;
+import org.kie.kogito.index.query.SortDirection;
 
-public abstract class AbstractQuery<T> implements Query<T> {
+import static com.mongodb.client.model.Sorts.ascending;
+import static com.mongodb.client.model.Sorts.descending;
+import static com.mongodb.client.model.Sorts.orderBy;
+import static org.kie.kogito.index.mongodb.utils.QueryUtils.FILTER_ATTRIBUTE_FUNCTION;
+import static org.kie.kogito.index.mongodb.utils.QueryUtils.FILTER_VALUE_AS_STRING_FUNCTION;
+import static org.kie.kogito.index.mongodb.utils.QueryUtils.SORT_ATTRIBUTE_FUNCTION;
+
+public abstract class AbstractQuery<T, E> implements Query<T> {
 
     Integer limit;
     Integer offset;
@@ -51,5 +70,50 @@ public abstract class AbstractQuery<T> implements Query<T> {
     public Query<T> sort(List<AttributeSort> sortBy) {
         this.sortBy = sortBy;
         return this;
+    }
+
+    @Override
+    public List<T> execute() {
+        MongoCollection<E> collection = this.getCollection();
+        Optional<Document> query = QueryUtils.generateQueryString(this.filters, this.getFilterAttributeFunction(), this.getFilterValueAsStringFunction()).map(Document::parse);
+        Optional<Bson> sort = this.generateSort();
+
+        FindIterable<E> find = query.map(collection::find).orElseGet(collection::find);
+        find = sort.map(find::sort).orElse(find);
+        find = Optional.ofNullable(this.offset).map(find::skip).orElse(find);
+        find = Optional.ofNullable(this.limit).map(find::limit).orElse(find);
+
+        List<T> list = new LinkedList<>();
+        try (MongoCursor<E> cursor = find.iterator()) {
+            while (cursor.hasNext()) {
+                list.add(mapToModel(cursor.next()));
+            }
+        }
+        return list;
+    }
+
+    abstract MongoCollection<E> getCollection();
+
+    abstract T mapToModel(E e);
+
+    private Optional<Bson> generateSort() {
+        return Optional.ofNullable(this.sortBy).map(sortBy -> orderBy(sortBy.stream().map(
+                sb -> SortDirection.ASC.equals(sb.getSort()) ?
+                        ascending(this.getSortAttributeFunction().apply(sb.getAttribute())) :
+                        descending(this.getSortAttributeFunction().apply(sb.getAttribute())))
+                                                                              .collect(Collectors.toList()))
+        );
+    }
+
+    BiFunction<String, Object, String> getFilterValueAsStringFunction() {
+        return FILTER_VALUE_AS_STRING_FUNCTION;
+    }
+
+    Function<String, String> getFilterAttributeFunction() {
+        return FILTER_ATTRIBUTE_FUNCTION;
+    }
+
+    Function<String, String> getSortAttributeFunction() {
+        return SORT_ATTRIBUTE_FUNCTION;
     }
 }

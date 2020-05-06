@@ -23,10 +23,13 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.quarkus.mongodb.panache.MongoEntity;
+import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
 import org.bson.Document;
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.kie.kogito.index.model.NodeInstance;
 import org.kie.kogito.index.model.ProcessInstance;
+import org.kie.kogito.index.model.ProcessInstanceError;
 
 import static org.kie.kogito.index.mongodb.utils.ModelUtils.documentToJsonNode;
 import static org.kie.kogito.index.mongodb.utils.ModelUtils.instantToZonedDateTime;
@@ -121,5 +124,87 @@ public class ProcessInstanceEntity extends PanacheMongoEntityBase {
         entity.lastUpdate = zonedDateTimeToInstant(instance.getLastUpdate());
         entity.businessKey = instance.getBusinessKey();
         return entity;
+    }
+
+    public static class NodeInstanceEntity extends PanacheMongoEntity {
+
+        public String _id;
+
+        public String id;
+
+        public String name;
+
+        public String nodeId;
+
+        public String type;
+
+        public Long enter;
+
+        public Long exit;
+
+        public String definitionId;
+
+        static NodeInstance toNodeInstance(NodeInstanceEntity entity) {
+            if (entity == null) {
+                return null;
+            }
+
+            NodeInstance instance = new NodeInstance();
+            instance.setId(entity.id);
+            instance.setName(entity.name);
+            instance.setNodeId(entity.nodeId);
+            instance.setType(entity.type);
+            instance.setEnter(instantToZonedDateTime(entity.enter));
+            instance.setExit(instantToZonedDateTime(entity.exit));
+            instance.setDefinitionId(entity.definitionId);
+            return instance;
+        }
+
+        static NodeInstanceEntity fromNodeInstance(NodeInstance instance) {
+            if (instance == null) {
+                return null;
+            }
+
+            NodeInstanceEntity entity = new NodeInstanceEntity();
+            entity.id = instance.getId();
+            entity.name = instance.getName();
+            entity.nodeId = instance.getNodeId();
+            entity.type = instance.getType();
+            entity.enter = zonedDateTimeToInstant(instance.getEnter());
+            entity.exit = zonedDateTimeToInstant(instance.getExit());
+            entity.definitionId = instance.getDefinitionId();
+            return entity;
+        }
+    }
+
+    public static class ProcessInstanceErrorEntity extends PanacheMongoEntity {
+
+        public String _id;
+
+        public String nodeDefinitionId;
+
+        public String message;
+
+        static ProcessInstanceError toProcessInstanceError(ProcessInstanceErrorEntity entity) {
+            if (entity == null) {
+                return null;
+            }
+
+            ProcessInstanceError error = new ProcessInstanceError();
+            error.setNodeDefinitionId(entity.nodeDefinitionId);
+            error.setMessage(entity.message);
+            return error;
+        }
+
+        static ProcessInstanceErrorEntity fromProcessInstanceError(ProcessInstanceError error) {
+            if (error == null) {
+                return null;
+            }
+
+            ProcessInstanceErrorEntity entity = new ProcessInstanceErrorEntity();
+            entity.nodeDefinitionId = error.getNodeDefinitionId();
+            entity.message = error.getMessage();
+            return entity;
+        }
     }
 }

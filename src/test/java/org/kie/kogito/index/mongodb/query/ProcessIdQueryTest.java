@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.kie.kogito.index.cache.Cache;
 import org.kie.kogito.index.cache.CacheService;
 import org.kie.kogito.index.mongodb.MongoDBServerTestResource;
+import org.kie.kogito.index.query.SortDirection;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -26,6 +27,7 @@ import static org.kie.kogito.index.query.QueryFilterFactory.in;
 import static org.kie.kogito.index.query.QueryFilterFactory.like;
 import static org.kie.kogito.index.query.QueryFilterFactory.notNull;
 import static org.kie.kogito.index.query.QueryFilterFactory.or;
+import static org.kie.kogito.index.query.QueryFilterFactory.orderBy;
 
 @QuarkusTest
 @QuarkusTestResource(MongoDBServerTestResource.class)
@@ -67,9 +69,9 @@ public class ProcessIdQueryTest {
         queryAndAssert(assertWithString(), cache, singletonList(or(asList(equalTo("processId", processId), equalTo("fullTypeName", type2)))), null, null, null, type1, type2);
         queryAndAssert(assertWithString(), cache, asList(equalTo("processId", processId), equalTo("fullTypeName", type2)), null, null, null);
 
-//        queryAndAssert(assertWithStringInOrder(), cache, singletonList(in("processId", asList(processId, subProcessId))), singletonList(orderBy("fullTypeName", SortDirection.DESC)), 1, 1, type2);
-//        queryAndAssert(assertWithStringInOrder(), cache, null, singletonList(orderBy("fullTypeName", SortDirection.DESC)), 1, 1, type2);
-//        queryAndAssert(assertWithStringInOrder(), cache, null, singletonList(orderBy("fullTypeName", SortDirection.DESC)), null, null, type2, type1);
+        queryAndAssert(assertWithStringInOrder(), cache, singletonList(in("processId", asList(processId, subProcessId))), singletonList(orderBy("fullTypeName", SortDirection.DESC)), 1, 1, type2);
+        queryAndAssert(assertWithStringInOrder(), cache, null, singletonList(orderBy("fullTypeName", SortDirection.DESC)), 1, 1, type2);
+        queryAndAssert(assertWithStringInOrder(), cache, null, asList(orderBy("fullTypeName", SortDirection.DESC), orderBy("processId", SortDirection.DESC)), null, null, type1, type2);
         queryAndAssert(assertWithStringInOrder(), cache, null, null, 1, 1, type2);
     }
 }

@@ -18,6 +18,7 @@ import org.kie.kogito.index.cache.CacheService;
 import org.kie.kogito.index.model.UserTaskInstance;
 import org.kie.kogito.index.mongodb.MongoDBServerTestResource;
 import org.kie.kogito.index.mongodb.TestUtils;
+import org.kie.kogito.index.query.SortDirection;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -39,6 +40,7 @@ import static org.kie.kogito.index.query.QueryFilterFactory.lessThanEqual;
 import static org.kie.kogito.index.query.QueryFilterFactory.like;
 import static org.kie.kogito.index.query.QueryFilterFactory.notNull;
 import static org.kie.kogito.index.query.QueryFilterFactory.or;
+import static org.kie.kogito.index.query.QueryFilterFactory.orderBy;
 
 @QuarkusTest
 @QuarkusTestResource(MongoDBServerTestResource.class)
@@ -90,9 +92,9 @@ public class UserTaskInstanceQueryTest {
         queryAndAssert(assertWithId(), cache, singletonList(or(asList(equalTo("id", taskId1), equalTo("id", taskId2)))), null, null, null, taskId1, taskId2);
         queryAndAssert(assertWithId(), cache, asList(equalTo("id", taskId1), equalTo("processInstanceId", processInstanceId2)), null, null, null);
 
-//        queryAndAssert(assertWithIdInOrder(), cache, asList(in("id", asList(taskId1, taskId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("state", SortDirection.ASC)), 1, 1, taskId2);
-//        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("state", SortDirection.DESC)), null, null, taskId2, taskId1);
+        queryAndAssert(assertWithIdInOrder(), cache, asList(in("id", asList(taskId1, taskId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("state", SortDirection.ASC)), 1, 1, taskId1);
+        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("state", SortDirection.DESC)), null, null, taskId1, taskId2);
         queryAndAssert(assertWithIdInOrder(), cache, null, null, 1, 1, taskId2);
-//        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("state", SortDirection.ASC)), 1, 1, taskId2);
+        queryAndAssert(assertWithIdInOrder(), cache, null, asList(orderBy("state", SortDirection.ASC), orderBy("completed", SortDirection.ASC)), 1, 1, taskId1);
     }
 }

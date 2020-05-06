@@ -16,37 +16,27 @@
 
 package org.kie.kogito.index.mongodb.query;
 
-import java.util.function.Function;
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 
-import io.quarkus.mongodb.panache.PanacheQuery;
-import io.quarkus.panache.common.Sort;
+import com.mongodb.client.MongoCollection;
 import org.kie.kogito.index.model.UserTaskInstance;
+import org.kie.kogito.index.mongodb.cache.UserTaskInstanceCache;
 import org.kie.kogito.index.mongodb.model.UserTaskInstanceEntity;
 
-public class UserTaskInstanceQuery extends AbstractEntityQuery<UserTaskInstance, UserTaskInstanceEntity> {
+@Dependent
+public class UserTaskInstanceQuery extends AbstractQuery<UserTaskInstance, UserTaskInstanceEntity> {
+
+    @Inject
+    UserTaskInstanceCache userTaskInstanceCache;
 
     @Override
-    PanacheQuery<UserTaskInstanceEntity> queryWithSort(String queryString, Sort sort) {
-        return UserTaskInstanceEntity.find(queryString, sort);
+    MongoCollection<UserTaskInstanceEntity> getCollection() {
+        return userTaskInstanceCache.getCollection();
     }
 
     @Override
-    PanacheQuery<UserTaskInstanceEntity> queryAllWithSort(Sort sort) {
-        return UserTaskInstanceEntity.findAll(sort);
-    }
-
-    @Override
-    PanacheQuery<UserTaskInstanceEntity> query(String queryString) {
-        return UserTaskInstanceEntity.find(queryString);
-    }
-
-    @Override
-    PanacheQuery<UserTaskInstanceEntity> queryAll() {
-        return UserTaskInstanceEntity.findAll();
-    }
-
-    @Override
-    Function<UserTaskInstanceEntity, UserTaskInstance> convertFunction() {
-        return UserTaskInstanceEntity::toUserTaskInstance;
+    UserTaskInstance mapToModel(UserTaskInstanceEntity userTaskInstanceEntity) {
+        return UserTaskInstanceEntity.toUserTaskInstance(userTaskInstanceEntity);
     }
 }

@@ -16,64 +16,45 @@
 
 package org.kie.kogito.index.mongodb.cache;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
+import com.mongodb.client.MongoCollection;
+import io.quarkus.mongodb.panache.runtime.MongoOperations;
 import org.kie.kogito.index.model.ProcessInstance;
 import org.kie.kogito.index.mongodb.model.ProcessInstanceEntity;
 import org.kie.kogito.index.mongodb.query.ProcessInstanceQuery;
 import org.kie.kogito.index.query.Query;
 
 @ApplicationScoped
-public class ProcessInstanceCache extends AbstractCache<String, ProcessInstance> {
+public class ProcessInstanceCache extends AbstractCache<String, ProcessInstance, ProcessInstanceEntity> {
+
+    @Inject
+    Provider<ProcessInstanceQuery> processInstanceQueryProvider;
+
+    @Override
+    public MongoCollection<ProcessInstanceEntity> getCollection() {
+        return MongoOperations.mongoCollection(ProcessInstanceEntity.class);
+    }
+
+    @Override
+    ProcessInstanceEntity mapToEntity(String key, ProcessInstance value) {
+        return ProcessInstanceEntity.fromProcessInstance(value);
+    }
+
+    @Override
+    ProcessInstance mapToModel(String key, ProcessInstanceEntity entity) {
+        return ProcessInstanceEntity.toProcessInstance(entity);
+    }
 
     @Override
     public Query<ProcessInstance> query() {
-        return new ProcessInstanceQuery();
+        return processInstanceQueryProvider.get();
     }
 
     @Override
     public String getRootType() {
         return ProcessInstance.class.getName();
-    }
-
-    @Override
-    public ProcessInstance get(Object o) {
-        return ProcessInstanceEntity.<ProcessInstanceEntity>findByIdOptional(o).map(ProcessInstanceEntity::toProcessInstance).orElse(null);
-    }
-
-    @Override
-    public ProcessInstance put(String s, ProcessInstance processInstance) {
-        if (!s.equals(processInstance.getId())) {
-            throw new IllegalArgumentException("Process instance id doesn't match the key of the cache entry");
-        }
-        ProcessInstance oldInstance = this.get(s);
-        Optional.ofNullable(ProcessInstanceEntity.fromProcessInstance(processInstance)).ifPresent(entity -> entity.persistOrUpdate());
-        Optional.ofNullable(oldInstance).map(o -> this.objectUpdatedListener).orElseGet(() -> this.objectCreatedListener).ifPresent(l -> l.accept(processInstance));
-        return oldInstance;
-    }
-
-    @Override
-    public void clear() {
-        ProcessInstanceEntity.deleteAll();
-    }
-
-    @Override
-    public ProcessInstance remove(Object o) {
-        ProcessInstance oldInstance = this.get(o);
-        Optional.ofNullable(oldInstance).ifPresent(i -> ProcessInstanceEntity.deleteById(o));
-        Optional.ofNullable(oldInstance).flatMap(i -> this.objectRemovedListener).ifPresent(l -> l.accept((String) o));
-        return oldInstance;
-    }
-
-    @Override
-    public int size() {
-        return (int) ProcessInstanceEntity.count();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return this.size() == 0;
     }
 }
