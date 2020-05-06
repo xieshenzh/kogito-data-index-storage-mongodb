@@ -21,7 +21,9 @@ import org.kie.kogito.index.mongodb.TestUtils;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.kie.kogito.index.mongodb.query.QueryTestBase.testQuery;
+import static org.kie.kogito.index.mongodb.query.QueryTestBase.assertWithId;
+import static org.kie.kogito.index.mongodb.query.QueryTestBase.assertWithIdInOrder;
+import static org.kie.kogito.index.mongodb.query.QueryTestBase.queryAndAssert;
 import static org.kie.kogito.index.query.QueryFilterFactory.and;
 import static org.kie.kogito.index.query.QueryFilterFactory.between;
 import static org.kie.kogito.index.query.QueryFilterFactory.contains;
@@ -71,26 +73,26 @@ public class UserTaskInstanceQueryTest {
         cache.put(taskId1, userTaskInstance1);
         cache.put(taskId2, userTaskInstance2);
 
-        testQuery(cache, singletonList(in("state", asList("InProgress", "Completed"))), null, null, null, taskId1, taskId2);
-        testQuery(cache, singletonList(equalTo("state", "InProgress")), null, null, null, taskId1);
-        testQuery(cache, singletonList(greaterThan("started", Instant.now().toEpochMilli())), null, null, null);
-        testQuery(cache, singletonList(greaterThanEqual("completed", Instant.now().toEpochMilli())), null, null, null, taskId1, taskId2);
-        testQuery(cache, singletonList(lessThan("completed", Instant.now().toEpochMilli())), null, null, null);
-        testQuery(cache, singletonList(lessThanEqual("started", Instant.now().toEpochMilli())), null, null, null, taskId1, taskId2);
-        testQuery(cache, singletonList(between("completed", Instant.now().toEpochMilli(), Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli())), null, null, null, taskId1, taskId2);
-        testQuery(cache, singletonList(isNull("rootProcessInstanceId")), null, null, null, taskId2);
-        testQuery(cache, singletonList(notNull("rootProcessInstanceId")), null, null, null, taskId1);
-        testQuery(cache, singletonList(contains("id", taskId1)), null, null, null, taskId1);
-        testQuery(cache, singletonList(containsAny("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null, taskId1, taskId2);
-        testQuery(cache, singletonList(containsAll("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null);
-        testQuery(cache, singletonList(like("id", "*_task1")), null, null, null, taskId1);
-        testQuery(cache, singletonList(and(asList(equalTo("id", taskId1), equalTo("processInstanceId", processInstanceId1)))), null, null, null, taskId1);
-        testQuery(cache, singletonList(or(asList(equalTo("id", taskId1), equalTo("id", taskId2)))), null, null, null, taskId1, taskId2);
-        testQuery(cache, asList(equalTo("id", taskId1), equalTo("processInstanceId", processInstanceId2)), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(in("state", asList("InProgress", "Completed"))), null, null, null, taskId1, taskId2);
+        queryAndAssert(assertWithId(), cache, singletonList(equalTo("state", "InProgress")), null, null, null, taskId1);
+        queryAndAssert(assertWithId(), cache, singletonList(greaterThan("started", Instant.now().toEpochMilli())), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(greaterThanEqual("completed", Instant.now().toEpochMilli())), null, null, null, taskId1, taskId2);
+        queryAndAssert(assertWithId(), cache, singletonList(lessThan("completed", Instant.now().toEpochMilli())), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(lessThanEqual("started", Instant.now().toEpochMilli())), null, null, null, taskId1, taskId2);
+        queryAndAssert(assertWithId(), cache, singletonList(between("completed", Instant.now().toEpochMilli(), Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli())), null, null, null, taskId1, taskId2);
+        queryAndAssert(assertWithId(), cache, singletonList(isNull("rootProcessInstanceId")), null, null, null, taskId2);
+        queryAndAssert(assertWithId(), cache, singletonList(notNull("rootProcessInstanceId")), null, null, null, taskId1);
+        queryAndAssert(assertWithId(), cache, singletonList(contains("id", taskId1)), null, null, null, taskId1);
+        queryAndAssert(assertWithId(), cache, singletonList(containsAny("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null, taskId1, taskId2);
+        queryAndAssert(assertWithId(), cache, singletonList(containsAll("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(like("id", "*_task1")), null, null, null, taskId1);
+        queryAndAssert(assertWithId(), cache, singletonList(and(asList(equalTo("id", taskId1), equalTo("processInstanceId", processInstanceId1)))), null, null, null, taskId1);
+        queryAndAssert(assertWithId(), cache, singletonList(or(asList(equalTo("id", taskId1), equalTo("id", taskId2)))), null, null, null, taskId1, taskId2);
+        queryAndAssert(assertWithId(), cache, asList(equalTo("id", taskId1), equalTo("processInstanceId", processInstanceId2)), null, null, null);
 
-//        testQuery(cache, asList(in("id", asList(taskId1, taskId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("state", SortDirection.ASC)), 1, 1, taskId2);
-//        testQuery(cache, null, singletonList(orderBy("state", SortDirection.DESC)), null, null, taskId2, taskId1);
-        testQuery(cache, null, null, 1, 1, taskId2);
-//        testQuery(cache, null, singletonList(orderBy("state", SortDirection.ASC)), 1, 1, taskId2);
+//        queryAndAssert(assertWithIdInOrder(), cache, asList(in("id", asList(taskId1, taskId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("state", SortDirection.ASC)), 1, 1, taskId2);
+//        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("state", SortDirection.DESC)), null, null, taskId2, taskId1);
+        queryAndAssert(assertWithIdInOrder(), cache, null, null, 1, 1, taskId2);
+//        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("state", SortDirection.ASC)), 1, 1, taskId2);
     }
 }

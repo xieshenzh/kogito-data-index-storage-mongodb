@@ -18,7 +18,9 @@ package org.kie.kogito.index.mongodb.query;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
 import org.kie.kogito.index.cache.Cache;
 import org.kie.kogito.index.query.AttributeFilter;
@@ -28,13 +30,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryTestBase {
 
-    static <K, V> void testQuery(Cache<K, V> cache, List<AttributeFilter<?>> filters, List<AttributeSort> sort, Integer offset, Integer limit, String... ids) {
-        List<V> instances = cache.query().filter(filters).sort(sort).offset(offset).limit(limit).execute();
-        if (sort != null) {
-            assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting("id").containsExactly(ids);
-        } else {
-            assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting("id").containsExactlyInAnyOrder(ids);
-        }
+    static <V> BiConsumer<List<V>, String[]> assertWithIdInOrder() {
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting("id").containsExactly(ids);
+    }
+
+    static <V> BiConsumer<List<V>, String[]> assertWithId() {
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting("id").containsExactlyInAnyOrder(ids);
+    }
+
+    static BiConsumer<List<String>, String[]> assertWithStringInOrder() {
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).containsExactly(ids);
+    }
+
+    static BiConsumer<List<String>, String[]> assertWithString() {
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).containsExactlyInAnyOrder(ids);
+    }
+
+    static BiConsumer<List<ObjectNode>, String[]> assertWithObjectNodeInOrder() {
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting(n -> n.get("_id").asText()).containsExactly(ids);
+    }
+
+    static BiConsumer<List<ObjectNode>, String[]> assertWithObjectNode() {
+        return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting(n -> n.get("_id").asText()).containsExactlyInAnyOrder(ids);
+    }
+
+    static <K, V> void queryAndAssert(BiConsumer<List<V>, String[]> assertConsumer, Cache<K, V> cache, List<AttributeFilter<?>> filters, List<AttributeSort> sort, Integer offset, Integer limit, String... ids) {
+        assertConsumer.accept(cache.query().filter(filters).sort(sort).offset(offset).limit(limit).execute(), ids);
     }
 
     static void testSleep() {

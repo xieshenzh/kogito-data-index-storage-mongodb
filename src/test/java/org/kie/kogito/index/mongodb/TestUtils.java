@@ -86,6 +86,7 @@ public class TestUtils {
         traveller.put("firstName", firstName);
         traveller.put("lastName", lastName);
         traveller.put("email", "tek@email.com");
+        traveller.put("age", 27);
         json.put("traveller", traveller);
         Map<String, Object> hotel = new HashMap<>();
         hotel.put("name", "Perfect hotel");

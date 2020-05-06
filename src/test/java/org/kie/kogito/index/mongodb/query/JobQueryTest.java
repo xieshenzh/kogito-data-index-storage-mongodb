@@ -19,7 +19,9 @@ import org.kie.kogito.index.mongodb.TestUtils;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.kie.kogito.index.mongodb.query.QueryTestBase.testQuery;
+import static org.kie.kogito.index.mongodb.query.QueryTestBase.assertWithId;
+import static org.kie.kogito.index.mongodb.query.QueryTestBase.assertWithIdInOrder;
+import static org.kie.kogito.index.mongodb.query.QueryTestBase.queryAndAssert;
 import static org.kie.kogito.index.query.QueryFilterFactory.and;
 import static org.kie.kogito.index.query.QueryFilterFactory.between;
 import static org.kie.kogito.index.query.QueryFilterFactory.contains;
@@ -69,26 +71,26 @@ public class JobQueryTest {
         cache.put(jobId1, job1);
         cache.put(jobId2, job2);
 
-        testQuery(cache, singletonList(in("status", asList("EXPECTED", "SCHEDULED"))), null, null, null, jobId1, jobId2);
-        testQuery(cache, singletonList(equalTo("status", "EXPECTED")), null, null, null, jobId1);
-        testQuery(cache, singletonList(greaterThan("priority", 1)), null, null, null);
-        testQuery(cache, singletonList(greaterThanEqual("priority", 1)), null, null, null, jobId1, jobId2);
-        testQuery(cache, singletonList(lessThan("priority", 1)), null, null, null);
-        testQuery(cache, singletonList(lessThanEqual("priority", 1)), null, null, null, jobId1, jobId2);
-        testQuery(cache, singletonList(between("priority", 0, 3)), null, null, null, jobId1, jobId2);
-        testQuery(cache, singletonList(isNull("rootProcessInstanceId")), null, null, null, jobId2);
-        testQuery(cache, singletonList(notNull("rootProcessInstanceId")), null, null, null, jobId1);
-        testQuery(cache, singletonList(contains("id", jobId1)), null, null, null, jobId1);
-        testQuery(cache, singletonList(containsAny("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null, jobId1, jobId2);
-        testQuery(cache, singletonList(containsAll("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null);
-        testQuery(cache, singletonList(like("id", "*_job1")), null, null, null, jobId1);
-        testQuery(cache, singletonList(and(asList(lessThan("retries", 11), greaterThanEqual("retries", 10)))), null, null, null, jobId1, jobId2);
-        testQuery(cache, singletonList(or(asList(equalTo("id", jobId1), equalTo("id", jobId2)))), null, null, null, jobId1, jobId2);
-        testQuery(cache, asList(equalTo("id", jobId1), equalTo("processInstanceId", processInstanceId2)), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(in("status", asList("EXPECTED", "SCHEDULED"))), null, null, null, jobId1, jobId2);
+        queryAndAssert(assertWithId(), cache, singletonList(equalTo("status", "EXPECTED")), null, null, null, jobId1);
+        queryAndAssert(assertWithId(), cache, singletonList(greaterThan("priority", 1)), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(greaterThanEqual("priority", 1)), null, null, null, jobId1, jobId2);
+        queryAndAssert(assertWithId(), cache, singletonList(lessThan("priority", 1)), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(lessThanEqual("priority", 1)), null, null, null, jobId1, jobId2);
+        queryAndAssert(assertWithId(), cache, singletonList(between("priority", 0, 3)), null, null, null, jobId1, jobId2);
+        queryAndAssert(assertWithId(), cache, singletonList(isNull("rootProcessInstanceId")), null, null, null, jobId2);
+        queryAndAssert(assertWithId(), cache, singletonList(notNull("rootProcessInstanceId")), null, null, null, jobId1);
+        queryAndAssert(assertWithId(), cache, singletonList(contains("id", jobId1)), null, null, null, jobId1);
+        queryAndAssert(assertWithId(), cache, singletonList(containsAny("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null, jobId1, jobId2);
+        queryAndAssert(assertWithId(), cache, singletonList(containsAll("processInstanceId", asList(processInstanceId1, processInstanceId2))), null, null, null);
+        queryAndAssert(assertWithId(), cache, singletonList(like("id", "*_job1")), null, null, null, jobId1);
+        queryAndAssert(assertWithId(), cache, singletonList(and(asList(lessThan("retries", 11), greaterThanEqual("retries", 10)))), null, null, null, jobId1, jobId2);
+        queryAndAssert(assertWithId(), cache, singletonList(or(asList(equalTo("id", jobId1), equalTo("id", jobId2)))), null, null, null, jobId1, jobId2);
+        queryAndAssert(assertWithId(), cache, asList(equalTo("id", jobId1), equalTo("processInstanceId", processInstanceId2)), null, null, null);
 
-//        testQuery(cache, asList(in("id", asList(jobId1, jobId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("status", SortDirection.ASC)), 1, 1, jobId2);
-//        testQuery(cache, null, singletonList(orderBy("status", SortDirection.DESC)), null, null, jobId2, jobId1);
-        testQuery(cache, null, null, 1, 1, jobId2);
-//        testQuery(cache, null, singletonList(orderBy("status", SortDirection.ASC)), 1, 1, jobId2);
+//        queryAndAssert(assertWithIdInOrder(), cache, asList(in("id", asList(jobId1, jobId2)), in("processInstanceId", asList(processInstanceId1, processInstanceId2))), singletonList(orderBy("status", SortDirection.ASC)), 1, 1, jobId2);
+//        queryAndAssert(assertWithIdInOrder(), cache, null, singletonList(orderBy("status", SortDirection.DESC)), null, null, jobId2, jobId1);
+        queryAndAssert(assertWithIdInOrder(), cache, null, null, 1, 1, jobId2);
+//        queryAndAssert(assertWithIdInOrder, cache, null, singletonList(orderBy("status", SortDirection.ASC)), 1, 1, jobId2);
     }
 }
