@@ -22,11 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.quarkus.arc.profile.IfBuildProfile;
-import org.kie.kogito.index.protobuf.ProtobufManager;
+import org.kie.kogito.index.protobuf.ProtobufCacheService;
 
 @ApplicationScoped
 @IfBuildProfile("mongodb")
-public class MongoDBProtobufManager implements ProtobufManager {
+public class MongoDBProtobufCacheService implements ProtobufCacheService {
 
     Map<String, String> protobufCache = new ConcurrentHashMap<>();
 

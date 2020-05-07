@@ -45,7 +45,7 @@ public abstract class AbstractQuery<T, E> implements Query<T> {
 
     Integer limit;
     Integer offset;
-    List<AttributeFilter<?>> filters;
+    List<AttributeFilter> filters;
     List<AttributeSort> sortBy;
 
     @Override
@@ -61,7 +61,7 @@ public abstract class AbstractQuery<T, E> implements Query<T> {
     }
 
     @Override
-    public Query<T> filter(List<AttributeFilter<?>> filters) {
+    public Query<T> filter(List<AttributeFilter> filters) {
         this.filters = filters;
         return this;
     }

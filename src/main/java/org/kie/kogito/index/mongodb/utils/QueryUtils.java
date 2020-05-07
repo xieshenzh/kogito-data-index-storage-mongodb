@@ -35,11 +35,11 @@ public class QueryUtils {
 
     public static BiFunction<String, Object, String> FILTER_VALUE_AS_STRING_FUNCTION = (attribute, value) -> value instanceof String ? "'" + value + "'" : value.toString();
 
-    public static Optional<String> generateQueryString(List<AttributeFilter<?>> filters, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
+    public static Optional<String> generateQueryString(List<AttributeFilter> filters, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
         return Optional.ofNullable(filters).map(fs -> format("{ %s }", fs.stream().map(f -> generateSingleQueryString(f, filterAttributeFunction, filterValueFunction)).collect(joining(", "))));
     }
 
-    private static String generateSingleQueryString(AttributeFilter<?> filter, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
+    private static <T> String generateSingleQueryString(AttributeFilter<T> filter, Function<String, String> filterAttributeFunction, BiFunction<String, Object, String> filterValueFunction) {
         switch (filter.getCondition()) {
             case CONTAINS:
             case EQUAL:

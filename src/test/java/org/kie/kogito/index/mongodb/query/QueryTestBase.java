@@ -54,7 +54,7 @@ class QueryTestBase {
         return (instances, ids) -> assertThat(instances).hasSize(ids == null ? 0 : ids.length).extracting(n -> n.get("id").asText()).containsExactlyInAnyOrder(ids);
     }
 
-    static <K, V> void queryAndAssert(BiConsumer<List<V>, String[]> assertConsumer, Cache<K, V> cache, List<AttributeFilter<?>> filters, List<AttributeSort> sort, Integer offset, Integer limit, String... ids) {
+    static <K, V> void queryAndAssert(BiConsumer<List<V>, String[]> assertConsumer, Cache<K, V> cache, List<AttributeFilter> filters, List<AttributeSort> sort, Integer offset, Integer limit, String... ids) {
         assertConsumer.accept(cache.query().filter(filters).sort(sort).offset(offset).limit(limit).execute(), ids);
     }
 
