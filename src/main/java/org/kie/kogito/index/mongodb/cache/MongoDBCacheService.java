@@ -20,19 +20,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.quarkus.arc.profile.IfBuildProfile;
 import org.kie.kogito.index.cache.Cache;
 import org.kie.kogito.index.cache.CacheService;
+import org.kie.kogito.index.cdi.Persistence;
 import org.kie.kogito.index.model.Job;
 import org.kie.kogito.index.model.ProcessInstance;
 import org.kie.kogito.index.model.UserTaskInstance;
 
 @ApplicationScoped
-@IfBuildProfile("mongodb")
+@Default
+@Persistence("mongodb")
 public class MongoDBCacheService implements CacheService {
 
     @Inject

@@ -14,7 +14,6 @@
 
   <properties>
     <version.org.mongodb.image>4.0</version.org.mongodb.image>
-    <version.io.quarkus>1.4.1.Final</version.io.quarkus>
   </properties>
 
   <dependencies>
