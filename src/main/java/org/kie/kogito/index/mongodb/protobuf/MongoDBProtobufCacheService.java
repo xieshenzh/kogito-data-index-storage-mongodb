@@ -22,12 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 
-import org.kie.kogito.index.cdi.Persistence;
+import org.kie.kogito.index.cdi.Storage;
 import org.kie.kogito.index.protobuf.ProtobufCacheService;
+
+import static org.kie.kogito.index.mongodb.Constants.MONGODB_STORAGE;
 
 @ApplicationScoped
 @Default
-@Persistence("mongodb")
+@Storage(MONGODB_STORAGE)
 public class MongoDBProtobufCacheService implements ProtobufCacheService {
 
     Map<String, String> protobufCache = new ConcurrentHashMap<>();

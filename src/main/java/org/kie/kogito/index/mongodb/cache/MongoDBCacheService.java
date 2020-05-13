@@ -27,14 +27,16 @@ import javax.inject.Provider;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.kie.kogito.index.cache.Cache;
 import org.kie.kogito.index.cache.CacheService;
-import org.kie.kogito.index.cdi.Persistence;
+import org.kie.kogito.index.cdi.Storage;
 import org.kie.kogito.index.model.Job;
 import org.kie.kogito.index.model.ProcessInstance;
 import org.kie.kogito.index.model.UserTaskInstance;
 
+import static org.kie.kogito.index.mongodb.Constants.MONGODB_STORAGE;
+
 @ApplicationScoped
 @Default
-@Persistence("mongodb")
+@Storage(MONGODB_STORAGE)
 public class MongoDBCacheService implements CacheService {
 
     @Inject
